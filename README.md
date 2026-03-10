@@ -18,7 +18,7 @@ A web-based expense tracking app built with Django and MySQL that helps users ma
 ## Setup Instructions
 
 ### 1. Clone the repository
-git clone https://github.com/your-username/tracking_expenses.git
+git clone https://github.com/Tots8388/tracking_expenses.git
 cd tracking_expenses
 
 ### 2. Install dependencies
