@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Dashboard</h2>
+
+<!-- Month Picker -->
+<form method="get" class="row g-2 mb-4">
+  <div class="col-auto">
+    <input type="month" name="month" class="form-control" value="{{ selected_month }}">
+  </div>
+  <div class="col-auto">
+    <button class="btn btn-primary">Filter</button>
+  </div>
+</form>
+
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="card card-income p-3">
+      <small class="text-muted">Total Income</small>
+      <h3 class="text-success">KES {{ summary.total_income|floatformat:2 }}</h3>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card card-expense p-3">
+      <small class="text-muted">Total Expenses</small>
+      <h3 class="text-danger">KES {{ summary.total_expense|floatformat:2 }}</h3>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card card-balance p-3">
+      <small class="text-muted">Balance</small>
+      <h3 class="text-primary">KES {{ summary.balance|floatformat:2 }}</h3>
+    </div>
+  </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-3">
+  <div class="col-md-5">
+    <div class="card p-3"><canvas id="pieChart"></canvas></div>
+  </div>
+  <div class="col-md-7">
+    <div class="card p-3"><canvas id="barChart"></canvas></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const pieData  = {{ pie_data|safe }};
+  const barData  = {{ bar_data|safe }};
+
+  // Pie chart: expenses by category
+  new Chart(document.getElementById('pieChart'), {
+    type: 'pie',
+    data: {
+      labels: pieData.labels,
+      datasets: [{ data: pieData.values,
+        backgroundColor: ['#1a56db','#0e9f6e','#c27803','#e02424','#7e3af2','#ff5a1f']
+      }]
+    }
+  });
+
+  // Bar chart: monthly income vs expense
+  new Chart(document.getElementById('barChart'), {
+    type: 'bar',
+    data: {
+      labels: barData.labels,
+      datasets: [
+        { label: 'Income',  data: barData.income,  backgroundColor: '#0e9f6e' },
+        { label: 'Expense', data: barData.expense, backgroundColor: '#e02424' }
+      ]
+    },
+    options: { scales: { y: { beginAtZero: true } } }
+  });
+</script>
+{% endblock %}
