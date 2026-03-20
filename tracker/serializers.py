@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Transaction, Category
 
+
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model  = Category
@@ -8,9 +9,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class TransactionSerializer(serializers.ModelSerializer):
-    category_name = serializers.CharField(
-        source='category.name', read_only=True
-    )
+    category_name = serializers.CharField(source='category.name', read_only=True)
 
     class Meta:
         model  = Transaction
@@ -21,6 +20,8 @@ class TransactionSerializer(serializers.ModelSerializer):
         read_only_fields = ['created_at']
 
     def validate_amount(self, value):
-        if value <= 0:
-            raise serializers.ValidationError('Amount must be positive.')
+        # Always validate absolute value — sign is enforced in model.save()
+        if abs(value) <= 0:
+            raise serializers.ValidationError('Amount must be non-zero.')
         return value
+    
