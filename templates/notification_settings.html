@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - Expense Tracker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Settings</h1>
+    <p class="subtitle">Manage your notification preferences</p>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-6">
+    <div class="content-card">
+      <div class="card-header-custom">
+        <h3 class="card-title">Email Notifications</h3>
+      </div>
+      <form method="post">
+        {% csrf_token %}
+
+        <div class="mb-4">
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="id_weekly_summary" name="weekly_summary"
+              {% if form.weekly_summary.value %}checked{% endif %}>
+            <label class="form-check-label" for="id_weekly_summary">
+              <span style="font-weight:600; color:var(--text-primary);">Weekly Summary</span>
+              <br><span style="font-size:0.8rem; color:var(--text-muted);">Receive a weekly email summarizing your income and expenses</span>
+            </label>
+          </div>
+
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="id_budget_alerts" name="budget_alerts"
+              {% if form.budget_alerts.value %}checked{% endif %}>
+            <label class="form-check-label" for="id_budget_alerts">
+              <span style="font-weight:600; color:var(--text-primary);">Budget Alerts</span>
+              <br><span style="font-size:0.8rem; color:var(--text-muted);">Get notified when you're approaching your budget limits</span>
+            </label>
+          </div>
+
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="id_large_expense_alert" name="large_expense_alert"
+              {% if form.large_expense_alert.value %}checked{% endif %}>
+            <label class="form-check-label" for="id_large_expense_alert">
+              <span style="font-weight:600; color:var(--text-primary);">Large Expense Alerts</span>
+              <br><span style="font-size:0.8rem; color:var(--text-muted);">Get notified when a single expense exceeds the threshold below</span>
+            </label>
+          </div>
+
+          <div class="mb-3">
+            <label for="id_large_expense_threshold" class="form-label">Large Expense Threshold</label>
+            {{ form.large_expense_threshold }}
+            <div class="form-text" style="font-size:0.78rem; color:var(--text-muted);">You'll be alerted for expenses above this amount</div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary-custom w-100" style="justify-content:center;">Save Preferences</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="content-card">
+      <div class="card-header-custom">
+        <h3 class="card-title">Appearance</h3>
+      </div>
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+          <span style="font-weight:600; color:var(--text-primary);">Dark Mode</span>
+          <br><span style="font-size:0.8rem; color:var(--text-muted);">Toggle between light and dark themes</span>
+        </div>
+        <button class="theme-toggle" onclick="toggleTheme()" style="width:48px; height:48px; font-size:1.3rem;">
+          <span id="themeIcon2">🌙</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="content-card mt-3">
+      <div class="card-header-custom">
+        <h3 class="card-title">Export Data</h3>
+      </div>
+      <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:16px;">Download all your transaction data</p>
+      <div class="d-flex gap-2">
+        <a href="{% url 'export_csv' %}" class="btn-outline-custom" style="flex:1; text-align:center;">📄 CSV Export</a>
+        <a href="{% url 'export_pdf' %}" class="btn-primary-custom" style="flex:1; justify-content:center;">📋 PDF Report</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Sync theme icon on settings page
+  const icon2 = document.getElementById('themeIcon2');
+  if (icon2) {
+    const saved = localStorage.getItem('theme') || 'light';
+    icon2.textContent = saved === 'dark' ? '☀️' : '🌙';
+  }
+  const origToggle = toggleTheme;
+  toggleTheme = function() {
+    origToggle();
+    const next = document.documentElement.getAttribute('data-theme');
+    if (icon2) icon2.textContent = next === 'dark' ? '☀️' : '🌙';
+  };
+</script>
+{% endblock %}

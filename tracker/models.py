@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
 
@@ -19,13 +20,13 @@ class Transaction(models.Model):
     type        = models.CharField(max_length=10, choices=TYPE_CHOICES)
     date        = models.DateField()
     description = models.CharField(max_length=255, blank=True)
+    receipt     = models.ImageField(upload_to='receipts/', null=True, blank=True)
     created_at  = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['date', 'created_at']
 
     def save(self, *args, **kwargs):
-        # Enforce signed amounts
         if self.type == 'expense':
             self.amount = -abs(self.amount)
         else:
@@ -34,3 +35,14 @@ class Transaction(models.Model):
 
     def __str__(self):
         return f'{self.type}: {self.amount} ({self.date})'
+
+
+class EmailNotificationPreference(models.Model):
+    user               = models.OneToOneField(User, on_delete=models.CASCADE, related_name='notification_prefs')
+    weekly_summary     = models.BooleanField(default=True)
+    budget_alerts      = models.BooleanField(default=True)
+    large_expense_alert = models.BooleanField(default=True)
+    large_expense_threshold = models.DecimalField(max_digits=12, decimal_places=2, default=1000)
+
+    def __str__(self):
+        return f'Notification prefs for {self.user.username}'
