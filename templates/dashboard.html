@@ -63,7 +63,9 @@
       <div class="card-header-custom">
         <h3 class="card-title">Balance Over Time</h3>
       </div>
-      <canvas id="balanceChart" height="220"></canvas>
+      <div style="position: relative; height: 260px;">
+        <canvas id="balanceChart"></canvas>
+      </div>
     </div>
   </div>
   <div class="col-md-4">
@@ -71,7 +73,9 @@
       <div class="card-header-custom">
         <h3 class="card-title">Expenses by Category</h3>
       </div>
-      <canvas id="pieChart" height="220"></canvas>
+      <div style="position: relative; height: 260px;">
+        <canvas id="pieChart"></canvas>
+      </div>
     </div>
   </div>
 </div>
@@ -102,12 +106,16 @@
   const transactionLog = {{ transaction_log|safe }};
   const pieData = {{ pie_data|safe }};
 
-  // ── Balance Line Chart ──
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const gridColor = isDark ? '#2A2A2A' : '#F0EDE8';
+  const tickColor = isDark ? '#6B6B6B' : '#9E9E9E';
+
+  // Balance Line Chart
   if (balancePoints.length > 0) {
     const ctx1 = document.getElementById('balanceChart').getContext('2d');
-    const gradient = ctx1.createLinearGradient(0, 0, 0, 220);
-    gradient.addColorStop(0, 'rgba(232, 145, 12, 0.15)');
-    gradient.addColorStop(1, 'rgba(232, 145, 12, 0.0)');
+    const gradient = ctx1.createLinearGradient(0, 0, 0, 260);
+    gradient.addColorStop(0, isDark ? 'rgba(240,160,48,0.2)' : 'rgba(232,145,12,0.15)');
+    gradient.addColorStop(1, 'rgba(232,145,12,0)');
 
     new Chart(ctx1, {
       type: 'line',
@@ -116,14 +124,14 @@
         datasets: [{
           label: 'Balance',
           data: balancePoints.map(p => p.y),
-          borderColor: '#E8910C',
+          borderColor: isDark ? '#F0A030' : '#E8910C',
           backgroundColor: gradient,
           fill: true,
           tension: 0.4,
           borderWidth: 2.5,
           pointRadius: 0,
           pointHoverRadius: 5,
-          pointHoverBackgroundColor: '#E8910C',
+          pointHoverBackgroundColor: isDark ? '#F0A030' : '#E8910C',
         }]
       },
       options: {
@@ -132,7 +140,7 @@
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: '#1A1A1A',
+            backgroundColor: isDark ? '#2A2A2A' : '#1A1A1A',
             titleFont: { family: 'DM Sans' },
             bodyFont: { family: 'DM Sans' },
             cornerRadius: 8,
@@ -142,18 +150,18 @@
         scales: {
           x: {
             grid: { display: false },
-            ticks: { font: { family: 'DM Sans', size: 11 }, color: '#9E9E9E' }
+            ticks: { font: { family: 'DM Sans', size: 11 }, color: tickColor }
           },
           y: {
-            grid: { color: '#F0EDE8' },
-            ticks: { font: { family: 'DM Sans', size: 11 }, color: '#9E9E9E' }
+            grid: { color: gridColor },
+            ticks: { font: { family: 'DM Sans', size: 11 }, color: tickColor }
           }
         }
       }
     });
   }
 
-  // ── Pie Chart ──
+  // Pie Chart
   if (pieData.labels.length > 0) {
     const colors = ['#E8910C', '#C47A0A', '#2E7D32', '#C62828', '#1565C0', '#6A1B9A', '#00838F', '#EF6C00'];
     new Chart(document.getElementById('pieChart'), {
@@ -178,15 +186,23 @@
               padding: 14,
               usePointStyle: true,
               pointStyle: 'circle',
-              font: { family: 'DM Sans', size: 11 }
+              font: { family: 'DM Sans', size: 11 },
+              color: tickColor
             }
+          },
+          tooltip: {
+            backgroundColor: isDark ? '#2A2A2A' : '#1A1A1A',
+            cornerRadius: 8,
+            padding: 10,
+            titleFont: { family: 'DM Sans' },
+            bodyFont: { family: 'DM Sans' }
           }
         }
       }
     });
   }
 
-  // ── Recent Transactions ──
+  // Recent Transactions
   const container = document.getElementById('recentTransactions');
   const recent = transactionLog.slice(-5).reverse();
   if (recent.length > 0) {

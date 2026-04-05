@@ -62,7 +62,9 @@
       <div class="card-header-custom">
         <h3 class="card-title">Income vs Expenses</h3>
       </div>
-      <canvas id="monthlyChart" height="260"></canvas>
+      <div style="position: relative; height: 280px;">
+        <canvas id="monthlyChart"></canvas>
+      </div>
     </div>
   </div>
   <div class="col-md-4">
@@ -70,7 +72,9 @@
       <div class="card-header-custom">
         <h3 class="card-title">Expense Categories</h3>
       </div>
-      <canvas id="categoryPie" height="260"></canvas>
+      <div style="position: relative; height: 280px;">
+        <canvas id="categoryPie"></canvas>
+      </div>
     </div>
   </div>
 </div>
@@ -82,7 +86,9 @@
       <div class="card-header-custom">
         <h3 class="card-title">Weekly Spending Trend</h3>
       </div>
-      <canvas id="weeklyChart" height="220"></canvas>
+      <div style="position: relative; height: 250px;">
+        <canvas id="weeklyChart"></canvas>
+      </div>
     </div>
   </div>
   <div class="col-md-4">
@@ -90,7 +96,9 @@
       <div class="card-header-custom">
         <h3 class="card-title">Income Sources</h3>
       </div>
-      <canvas id="incomePie" height="220"></canvas>
+      <div style="position: relative; height: 250px;">
+        <canvas id="incomePie"></canvas>
+      </div>
     </div>
   </div>
 </div>
@@ -147,7 +155,13 @@
     maintainAspectRatio: false,
     plugins: {
       legend: { labels: { font: { family: 'DM Sans', size: 11 }, color: tickColor } },
-      tooltip: { backgroundColor: isDark ? '#2A2A2A' : '#1A1A1A', cornerRadius: 8, padding: 10, titleFont: { family: 'DM Sans' }, bodyFont: { family: 'DM Sans' } }
+      tooltip: {
+        backgroundColor: isDark ? '#2A2A2A' : '#1A1A1A',
+        cornerRadius: 8,
+        padding: 10,
+        titleFont: { family: 'DM Sans' },
+        bodyFont: { family: 'DM Sans' }
+      }
     }
   };
 
@@ -158,8 +172,20 @@
       data: {
         labels: monthlyLabels,
         datasets: [
-          { label: 'Income', data: monthlyIncome, backgroundColor: isDark ? '#66BB6A' : '#2E7D32', borderRadius: 6, barPercentage: 0.7 },
-          { label: 'Expenses', data: monthlyExpense, backgroundColor: isDark ? '#EF5350' : '#C62828', borderRadius: 6, barPercentage: 0.7 }
+          {
+            label: 'Income',
+            data: monthlyIncome,
+            backgroundColor: isDark ? '#66BB6A' : '#2E7D32',
+            borderRadius: 6,
+            barPercentage: 0.7
+          },
+          {
+            label: 'Expenses',
+            data: monthlyExpense,
+            backgroundColor: isDark ? '#EF5350' : '#C62828',
+            borderRadius: 6,
+            barPercentage: 0.7
+          }
         ]
       },
       options: {
@@ -180,9 +206,24 @@
       type: 'doughnut',
       data: {
         labels: catLabels,
-        datasets: [{ data: catValues, backgroundColor: pieColors.slice(0, catLabels.length), borderWidth: 0, hoverOffset: 6 }]
+        datasets: [{
+          data: catValues,
+          backgroundColor: pieColors.slice(0, catLabels.length),
+          borderWidth: 0,
+          hoverOffset: 6
+        }]
       },
-      options: { ...chartDefaults, cutout: '65%', plugins: { ...chartDefaults.plugins, legend: { position: 'bottom', labels: { padding: 12, usePointStyle: true, pointStyle: 'circle', font: { family: 'DM Sans', size: 11 }, color: tickColor } } } }
+      options: {
+        ...chartDefaults,
+        cutout: '65%',
+        plugins: {
+          ...chartDefaults.plugins,
+          legend: {
+            position: 'bottom',
+            labels: { padding: 12, usePointStyle: true, pointStyle: 'circle', font: { family: 'DM Sans', size: 11 }, color: tickColor }
+          }
+        }
+      }
     });
   }
 
@@ -192,16 +233,31 @@
       type: 'doughnut',
       data: {
         labels: incomeCatLabels,
-        datasets: [{ data: incomeCatValues, backgroundColor: ['#2E7D32', '#66BB6A', '#A5D6A7', '#43A047', '#1B5E20'].slice(0, incomeCatLabels.length), borderWidth: 0, hoverOffset: 6 }]
+        datasets: [{
+          data: incomeCatValues,
+          backgroundColor: ['#2E7D32', '#66BB6A', '#A5D6A7', '#43A047', '#1B5E20'].slice(0, incomeCatLabels.length),
+          borderWidth: 0,
+          hoverOffset: 6
+        }]
       },
-      options: { ...chartDefaults, cutout: '65%', plugins: { ...chartDefaults.plugins, legend: { position: 'bottom', labels: { padding: 12, usePointStyle: true, pointStyle: 'circle', font: { family: 'DM Sans', size: 11 }, color: tickColor } } } }
+      options: {
+        ...chartDefaults,
+        cutout: '65%',
+        plugins: {
+          ...chartDefaults.plugins,
+          legend: {
+            position: 'bottom',
+            labels: { padding: 12, usePointStyle: true, pointStyle: 'circle', font: { family: 'DM Sans', size: 11 }, color: tickColor }
+          }
+        }
+      }
     });
   }
 
   // Weekly line chart
   if (weeklyLabels.length > 0) {
     const ctx = document.getElementById('weeklyChart').getContext('2d');
-    const gradient = ctx.createLinearGradient(0, 0, 0, 220);
+    const gradient = ctx.createLinearGradient(0, 0, 0, 250);
     gradient.addColorStop(0, isDark ? 'rgba(240,160,48,0.2)' : 'rgba(232,145,12,0.15)');
     gradient.addColorStop(1, 'rgba(232,145,12,0)');
 
@@ -214,8 +270,11 @@
           data: weeklyValues,
           borderColor: isDark ? '#F0A030' : '#E8910C',
           backgroundColor: gradient,
-          fill: true, tension: 0.4, borderWidth: 2.5,
-          pointRadius: 3, pointBackgroundColor: isDark ? '#F0A030' : '#E8910C',
+          fill: true,
+          tension: 0.4,
+          borderWidth: 2.5,
+          pointRadius: 3,
+          pointBackgroundColor: isDark ? '#F0A030' : '#E8910C',
         }]
       },
       options: {
