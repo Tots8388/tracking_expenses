@@ -114,8 +114,8 @@
       <div class="transaction-left">
         <div class="transaction-icon expense">↓</div>
         <div>
-          <div class="transaction-desc">{{ tx.description|default:tx.category.name }}</div>
-          <div class="transaction-cat">{{ tx.category.name|default:"Uncategorized" }}</div>
+          <div class="transaction-desc">{{ tx.description|default:"No description" }}</div>
+          <div class="transaction-cat">{% if tx.category %}{{ tx.category.name }}{% else %}Uncategorized{% endif %}</div>
         </div>
       </div>
       <div class="text-end">

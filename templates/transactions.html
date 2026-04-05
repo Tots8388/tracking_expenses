@@ -63,8 +63,8 @@
           {% if tx.type == 'income' %}↑{% else %}↓{% endif %}
         </div>
         <div>
-          <div class="transaction-desc">{{ tx.description|default:tx.category.name }}</div>
-          <div class="transaction-cat">{{ tx.category.name|default:"Uncategorized" }}</div>
+          <div class="transaction-desc">{{ tx.description|default:"No description" }}</div>
+          <div class="transaction-cat">{% if tx.category %}{{ tx.category.name }}{% else %}Uncategorized{% endif %}</div>
         </div>
       </div>
       <div class="d-flex align-items-center gap-3">
@@ -74,6 +74,11 @@
           </div>
           <div class="transaction-date">{{ tx.date }}</div>
         </div>
+        {% if tx.receipt %}
+          <a href="{{ tx.receipt.url }}" target="_blank">
+            <img src="{{ tx.receipt.url }}" class="receipt-thumb" alt="Receipt">
+          </a>
+        {% endif %}
         <div class="d-flex gap-1">
           <a href="{% url 'transaction_edit' tx.pk %}" class="btn-outline-custom" style="padding:5px 10px; font-size:0.75rem;">Edit</a>
           <a href="{% url 'transaction_delete' tx.pk %}" class="btn-outline-custom" style="padding:5px 10px; font-size:0.75rem; color:var(--accent-red); border-color:var(--accent-red-light);">Del</a>
