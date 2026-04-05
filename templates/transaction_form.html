@@ -1,35 +1,30 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - Expense Tracker{% endblock %}
+
 {% block content %}
 <div class="row justify-content-center">
   <div class="col-md-6">
-    <div class="card p-4">
-      <h2 class="mb-4">{{ title }}</h2>
+    <div class="mb-3">
+      <a href="{% url 'transaction_list' %}" class="btn-outline-custom" style="font-size:0.8rem;">← Back to Transactions</a>
+    </div>
+    <div class="content-card">
+      <h2 style="font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:1.3rem; margin-bottom:24px;">{{ title }}</h2>
       <form method="post">
         {% csrf_token %}
-        <div class="mb-3">
-          <label class="form-label">Amount (KES)</label>
-          {{ form.amount }}
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Type</label>
-          {{ form.type }}
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Category</label>
-          {{ form.category }}
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Date</label>
-          {{ form.date }}
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Description</label>
-          {{ form.description }}
-        </div>
-        <div class="d-flex gap-2">
-          <button type="submit" class="btn btn-primary w-100">Save Transaction</button>
-          <a href="{% url 'transaction_list' %}" class="btn btn-outline-secondary w-100">Cancel</a>
-        </div>
+        {% for field in form %}
+          <div class="mb-3">
+            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+              <div class="form-text" style="font-size:0.78rem; color:var(--text-muted);">{{ field.help_text }}</div>
+            {% endif %}
+            {% for error in field.errors %}
+              <div class="text-danger small mt-1">{{ error }}</div>
+            {% endfor %}
+          </div>
+        {% endfor %}
+        <button type="submit" class="btn-primary-custom w-100 mt-2" style="justify-content:center;">Save Transaction</button>
       </form>
     </div>
   </div>

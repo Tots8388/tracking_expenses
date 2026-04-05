@@ -2,6 +2,7 @@ import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm
 from django.db.models import Sum
 from rest_framework import generics, permissions
 from rest_framework.response import Response
@@ -105,6 +106,13 @@ def _build_financials(qs):
         'transaction_log': transaction_log,
     }
 
+def signup_view(request):
+    form = UserCreationForm(request.POST or None)
+    if form.is_valid():
+        form.save()
+        messages.success(request, 'Account created! You can now log in.')
+        return redirect('login')
+    return render(request, 'registration/signup.html', {'form': form})
 
 # ── Template Views ──
 

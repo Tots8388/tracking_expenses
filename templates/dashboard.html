@@ -1,256 +1,214 @@
-{% extends 'base.html' %}
-{% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h2>Dashboard</h2>
-  <a href="{% url 'transaction_list' %}" class="btn btn-outline-primary btn-sm">View All Transactions</a>
-</div>
+{% extends "base.html" %}
 
-<!-- Month Picker -->
-<form method="get" class="row g-2 mb-4">
-  <div class="col-auto">
-    <input type="month" name="month" class="form-control" value="{{ selected_month }}">
+{% block title %}Dashboard - Expense Tracker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Dashboard</h1>
+    <p class="subtitle">Track your income and expenses at a glance</p>
   </div>
-  <div class="col-auto">
-    <button class="btn btn-primary">Filter</button>
-    <a href="/" class="btn btn-outline-secondary">Clear</a>
+  <div class="d-flex align-items-center gap-2">
+    <form method="get" class="d-flex align-items-center gap-2">
+      <input type="month" name="month" value="{{ selected_month }}" class="form-control" style="max-width: 180px;">
+      <button type="submit" class="btn-outline-custom">Filter</button>
+      {% if selected_month %}
+        <a href="/" class="btn-outline-custom">Clear</a>
+      {% endif %}
+    </form>
   </div>
-</form>
+</div>
 
 <!-- Summary Cards -->
 <div class="row g-3 mb-4">
-  <div class="col-md-3">
-    <div class="card card-income p-3">
-      <small class="text-muted">Total Income</small>
-      <h4 class="text-success mb-0">+KES {{ summary.total_income|floatformat:2 }}</h4>
-    </div>
-  </div>
-  <div class="col-md-3">
-    <div class="card card-expense p-3">
-      <small class="text-muted">Total Expenses</small>
-      <h4 class="text-danger mb-0">−KES {{ summary.total_expense|floatformat:2 }}</h4>
-    </div>
-  </div>
-  <div class="col-md-3">
-    <div class="card card-balance p-3">
-      <small class="text-muted">Remaining Balance</small>
-      <h4 class="{% if summary.balance >= 0 %}text-primary{% else %}text-danger{% endif %} mb-0">
-        KES {{ summary.balance|floatformat:2 }}
-      </h4>
-    </div>
-  </div>
-  <div class="col-md-3">
-    <div class="card p-3" style="border-left: 4px solid #7e3af2;">
-      <small class="text-muted">Transaction Volume</small>
-      <h4 class="mb-0" style="color:#7e3af2;">KES {{ summary.total_volume|floatformat:2 }}</h4>
-    </div>
-  </div>
-</div>
-
-<!-- Charts Row -->
-<div class="row g-3 mb-4">
-  <div class="col-md-5">
-    <div class="card p-3">
-      <p class="text-muted small mb-2">Expenses by category</p>
-      <canvas id="pieChart"></canvas>
-    </div>
-  </div>
-  <div class="col-md-7">
-    <div class="card p-3">
-      <div id="chartWrapper" style="
-        resize: vertical;
-        overflow: auto;
-        min-height: 200px;
-        max-height: 600px;
-        height: 350px;
-        border-top: 3px solid #0e9f6e;
-        padding-top: 10px;
-        position: relative;
-      ">
-        <canvas id="balanceChart"></canvas>
+  <div class="col-md-4">
+    <div class="stat-card income">
+      <div class="d-flex align-items-center justify-content-between">
+        <div>
+          <div class="stat-label">Total Income</div>
+          <div class="stat-value">{{ summary.total_income|floatformat:2 }}</div>
+        </div>
+        <div class="stat-icon">↑</div>
       </div>
-      <p class="text-muted small mt-2 text-center">↕ Drag the top border to resize the chart</p>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card expense">
+      <div class="d-flex align-items-center justify-content-between">
+        <div>
+          <div class="stat-label">Total Expenses</div>
+          <div class="stat-value">{{ summary.total_expense|floatformat:2 }}</div>
+        </div>
+        <div class="stat-icon">↓</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card balance">
+      <div class="d-flex align-items-center justify-content-between">
+        <div>
+          <div class="stat-label">Balance</div>
+          <div class="stat-value">{{ summary.balance|floatformat:2 }}</div>
+        </div>
+        <div class="stat-icon">≈</div>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- Transaction Log -->
-<div class="card mb-4">
-  <div class="card-header bg-white d-flex justify-content-between align-items-center">
-    <strong>All Transactions — Running Balance</strong>
-    <span class="text-muted small">Income = positive (+) &nbsp;|&nbsp; Expense = negative (−)</span>
+<!-- Charts -->
+<div class="row g-3 mb-4">
+  <div class="col-md-8">
+    <div class="content-card">
+      <div class="card-header-custom">
+        <h3 class="card-title">Balance Over Time</h3>
+      </div>
+      <canvas id="balanceChart" height="220"></canvas>
+    </div>
   </div>
-  <div class="table-responsive">
-    <table class="table table-bordered table-hover table-striped mb-0">
-      <thead class="table-dark">
-        <tr>
-          <th>#</th>
-          <th>Date</th>
-          <th>Description</th>
-          <th>Category</th>
-          <th>Type</th>
-          <th class="text-end">Amount (KES)</th>
-          <th class="text-end">Running Balance</th>
-          <th class="text-center">Effect</th>
-        </tr>
-      </thead>
-      <tbody id="txBody">
-        <tr><td colspan="8" class="text-center text-muted py-3">Loading...</td></tr>
-      </tbody>
-      <tfoot class="table-light fw-bold" id="txFoot"></tfoot>
-    </table>
+  <div class="col-md-4">
+    <div class="content-card">
+      <div class="card-header-custom">
+        <h3 class="card-title">Expenses by Category</h3>
+      </div>
+      <canvas id="pieChart" height="220"></canvas>
+    </div>
   </div>
+</div>
+
+<!-- Recent Transactions -->
+<div class="content-card">
+  <div class="card-header-custom">
+    <h3 class="card-title">Recent Transactions</h3>
+    <a href="{% url 'transaction_list' %}" class="btn-outline-custom">View All</a>
+  </div>
+
+  <div id="recentTransactions"></div>
+
+  {% if not summary.total_volume %}
+  <div class="empty-state">
+    <div class="empty-state-icon">📊</div>
+    <h3>No transactions yet</h3>
+    <p>Start tracking your expenses by adding your first transaction.</p>
+    <a href="{% url 'transaction_add' %}" class="btn-primary-custom mt-3">+ Add Transaction</a>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-  const pieData       = {{ pie_data|safe }};
   const balancePoints = {{ balance_points|safe }};
-  const txLog         = {{ transaction_log|safe }};
+  const transactionLog = {{ transaction_log|safe }};
+  const pieData = {{ pie_data|safe }};
 
-  // ── Pie chart ──
-  new Chart(document.getElementById('pieChart'), {
-    type: 'pie',
-    data: {
-      labels: pieData.labels,
-      datasets: [{ data: pieData.values,
-        backgroundColor: ['#1a56db','#0e9f6e','#c27803','#e02424','#7e3af2','#ff5a1f']
-      }]
-    },
-    options: { plugins: { legend: { position: 'bottom' } } }
-  });
+  // ── Balance Line Chart ──
+  if (balancePoints.length > 0) {
+    const ctx1 = document.getElementById('balanceChart').getContext('2d');
+    const gradient = ctx1.createLinearGradient(0, 0, 0, 220);
+    gradient.addColorStop(0, 'rgba(232, 145, 12, 0.15)');
+    gradient.addColorStop(1, 'rgba(232, 145, 12, 0.0)');
 
-  // ── Balance line chart ──
-  const balanceChart = new Chart(document.getElementById('balanceChart'), {
-    type: 'line',
-    data: {
-      labels: balancePoints.map(p => p.x),
-      datasets: [{
-        label: 'Running Balance',
-        data:  balancePoints.map(p => p.y),
-        borderColor: '#0e9f6e',
-        borderWidth: 2,
-        backgroundColor: 'rgba(14, 159, 110, 0.08)',
-        pointBackgroundColor: txLog.map(tx => tx.amount >= 0 ? '#0e9f6e' : '#e02424'),
-        pointBorderColor: '#fff',
-        pointBorderWidth: 2,
-        pointRadius: 6,
-        pointHoverRadius: 9,
-        tension: 0.4,
-        fill: true,
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: {
-          ticks: {
-            stepSize: 10000,
-            callback: v => {
-              if (v === 0) return '0';
-              return (v >= 0 ? '+' : '−') + Math.abs(v / 1000).toFixed(0) + 'K';
-            }
-          },
-          title: { display: true, text: 'Balance (KES)' },
-          grid: { color: 'rgba(0,0,0,0.06)' }
-        },
-        x: {
-          title: { display: true, text: 'Date' },
-          grid:  { color: 'rgba(0,0,0,0.06)' },
-          ticks: { maxRotation: 45 }
-        }
+    new Chart(ctx1, {
+      type: 'line',
+      data: {
+        labels: balancePoints.map(p => p.x),
+        datasets: [{
+          label: 'Balance',
+          data: balancePoints.map(p => p.y),
+          borderColor: '#E8910C',
+          backgroundColor: gradient,
+          fill: true,
+          tension: 0.4,
+          borderWidth: 2.5,
+          pointRadius: 0,
+          pointHoverRadius: 5,
+          pointHoverBackgroundColor: '#E8910C',
+        }]
       },
-      plugins: {
-        title: {
-          display: true,
-          text: [
-            'Financial Balance Flow',
-            '(' + new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) + ')'
-          ],
-          font: { size: 14 },
-          color: '#333'
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1A1A1A',
+            titleFont: { family: 'DM Sans' },
+            bodyFont: { family: 'DM Sans' },
+            cornerRadius: 8,
+            padding: 10,
+          }
         },
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: function(ctx) {
-              const tx   = txLog[ctx.dataIndex];
-              if (!tx) return 'Balance: KES ' + ctx.parsed.y.toLocaleString();
-              const sign = tx.amount >= 0 ? '+' : '';
-              return [
-                'Balance: KES ' + ctx.parsed.y.toLocaleString(),
-                'Transaction: ' + sign + tx.amount.toLocaleString(),
-                tx.description ? 'Note: ' + tx.description : ''
-              ].filter(Boolean);
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { font: { family: 'DM Sans', size: 11 }, color: '#9E9E9E' }
+          },
+          y: {
+            grid: { color: '#F0EDE8' },
+            ticks: { font: { family: 'DM Sans', size: 11 }, color: '#9E9E9E' }
+          }
+        }
+      }
+    });
+  }
+
+  // ── Pie Chart ──
+  if (pieData.labels.length > 0) {
+    const colors = ['#E8910C', '#C47A0A', '#2E7D32', '#C62828', '#1565C0', '#6A1B9A', '#00838F', '#EF6C00'];
+    new Chart(document.getElementById('pieChart'), {
+      type: 'doughnut',
+      data: {
+        labels: pieData.labels,
+        datasets: [{
+          data: pieData.values,
+          backgroundColor: colors.slice(0, pieData.labels.length),
+          borderWidth: 0,
+          hoverOffset: 6,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '65%',
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              padding: 14,
+              usePointStyle: true,
+              pointStyle: 'circle',
+              font: { family: 'DM Sans', size: 11 }
             }
           }
         }
       }
-    }
-  });
+    });
+  }
 
-  new ResizeObserver(() => balanceChart.resize())
-    .observe(document.getElementById('chartWrapper'));
-
-  // ── Transaction log ──
-  const tbody = document.getElementById('txBody');
-  const tfoot = document.getElementById('txFoot');
-
-  if (txLog.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-3">
-      No transactions found. <a href="{% url 'transaction_add' %}">Add one</a></td></tr>`;
-  } else {
-    tbody.innerHTML = txLog.map((tx, i) => {
-      const isIncome   = tx.amount >= 0;
-      const amtColor   = isIncome ? 'text-success' : 'text-danger';
-      const amtDisplay = (isIncome ? '+' : '−') + Math.abs(tx.amount).toLocaleString();
-      const badge      = isIncome
-        ? '<span class="badge bg-success">Income</span>'
-        : '<span class="badge bg-danger">Expense</span>';
-      const arrow      = isIncome
-        ? '<span class="text-success fw-bold">↑ Rise</span>'
-        : '<span class="text-danger fw-bold">↓ Drop</span>';
-      const balColor   = tx.balance >= 0 ? 'text-primary' : 'text-danger';
-
-      return `<tr>
-        <td class="text-muted small">${i + 1}</td>
-        <td>${tx.date}</td>
-        <td>${tx.description || '—'}</td>
-        <td><span class="badge bg-secondary">${tx.category}</span></td>
-        <td>${badge}</td>
-        <td class="text-end fw-bold ${amtColor}">${amtDisplay}</td>
-        <td class="text-end fw-bold ${balColor}">KES ${tx.balance.toLocaleString()}</td>
-        <td class="text-center">${arrow}</td>
-      </tr>`;
-    }).join('');
-
-    const lastBalance  = txLog[txLog.length - 1].balance;
-    const totalIncome  = txLog.reduce((s, t) => t.amount > 0 ? s + t.amount  : s, 0);
-    const totalExpense = txLog.reduce((s, t) => t.amount < 0 ? s + Math.abs(t.amount) : s, 0);
-    const totalVolume  = totalIncome + totalExpense;
-
-    tfoot.innerHTML = `
-      <tr>
-        <td colspan="5" class="text-end">Total Income:</td>
-        <td class="text-end text-success">+KES ${totalIncome.toLocaleString()}</td>
-        <td colspan="2"></td>
-      </tr>
-      <tr>
-        <td colspan="5" class="text-end">Total Expenses:</td>
-        <td class="text-end text-danger">−KES ${totalExpense.toLocaleString()}</td>
-        <td colspan="2"></td>
-      </tr>
-      <tr>
-        <td colspan="5" class="text-end">Transaction Volume:</td>
-        <td class="text-end" style="color:#7e3af2;">KES ${totalVolume.toLocaleString()}</td>
-        <td colspan="2"></td>
-      </tr>
-      <tr>
-        <td colspan="5" class="text-end">Final Balance:</td>
-        <td class="text-end text-primary fw-bold">KES ${lastBalance.toLocaleString()}</td>
-        <td colspan="2"></td>
-      </tr>`;
+  // ── Recent Transactions ──
+  const container = document.getElementById('recentTransactions');
+  const recent = transactionLog.slice(-5).reverse();
+  if (recent.length > 0) {
+    container.innerHTML = recent.map(tx => `
+      <div class="transaction-item">
+        <div class="transaction-left">
+          <div class="transaction-icon ${tx.type}">
+            ${tx.type === 'income' ? '↑' : '↓'}
+          </div>
+          <div>
+            <div class="transaction-desc">${tx.description || tx.category}</div>
+            <div class="transaction-cat">${tx.category}</div>
+          </div>
+        </div>
+        <div class="text-end">
+          <div class="transaction-amount ${tx.type}">
+            ${tx.type === 'income' ? '+' : '-'}${Math.abs(tx.amount).toFixed(2)}
+          </div>
+          <div class="transaction-date">${tx.date}</div>
+        </div>
+      </div>
+    `).join('');
   }
 </script>
 {% endblock %}

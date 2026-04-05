@@ -1,106 +1,93 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+
+{% block title %}Transactions - Expense Tracker{% endblock %}
+
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h2>All Transactions</h2>
-  <a href="{% url 'transaction_add' %}" class="btn btn-primary btn-sm">+ Add Transaction</a>
+<div class="page-header">
+  <div>
+    <h1>Transactions</h1>
+    <p class="subtitle">Manage all your income and expenses</p>
+  </div>
+  <a href="{% url 'transaction_add' %}" class="btn-primary-custom">+ Add Transaction</a>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card income">
+      <div class="stat-label">Income</div>
+      <div class="stat-value" style="font-size:1.2rem;">{{ total_income|floatformat:2 }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card expense">
+      <div class="stat-label">Expenses</div>
+      <div class="stat-value" style="font-size:1.2rem;">{{ total_expense|floatformat:2 }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card balance">
+      <div class="stat-label">Balance</div>
+      <div class="stat-value" style="font-size:1.2rem;">{{ balance|floatformat:2 }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card" style="border-left: 3px solid var(--text-muted);">
+      <div class="stat-label">Total Volume</div>
+      <div class="stat-value" style="font-size:1.2rem;">{{ total_volume|floatformat:2 }}</div>
+    </div>
+  </div>
 </div>
 
 <!-- Filters -->
-<form method="get" class="row g-2 mb-3">
-  <div class="col-auto">
-    <select name="type" class="form-select form-select-sm">
-      <option value="">All Types</option>
-      <option value="income"  {% if request.GET.type == 'income' %}selected{% endif %}>Income</option>
-      <option value="expense" {% if request.GET.type == 'expense' %}selected{% endif %}>Expense</option>
-    </select>
-  </div>
-  <div class="col-auto">
-    <input type="month" name="month" class="form-control form-control-sm" value="{{ request.GET.month }}">
-  </div>
-  <div class="col-auto">
-    <button class="btn btn-outline-primary btn-sm">Filter</button>
-    <a href="{% url 'transaction_list' %}" class="btn btn-outline-secondary btn-sm">Clear</a>
-  </div>
-</form>
-
-{% if transactions %}
-<!-- Spreadsheet Table -->
-<div class="card">
-  <div class="table-responsive">
-    <table class="table table-bordered table-hover table-striped mb-0">
-      <thead class="table-dark">
-        <tr>
-          <th>#</th>
-          <th>Date</th>
-          <th>Description</th>
-          <th>Category</th>
-          <th>Type</th>
-          <th class="text-end">Amount (KES)</th>
-          <th class="text-center">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for tx in transactions %}
-        <tr>
-          <td class="text-muted small">{{ forloop.counter }}</td>
-          <td>{{ tx.date }}</td>
-          <td>{{ tx.description|default:"—" }}</td>
-          <td>
-            <span class="badge bg-secondary">
-              {{ tx.category.name|default:"Uncategorized" }}
-            </span>
-          </td>
-          <td>
-            {% if tx.type == 'income' %}
-              <span class="badge bg-success">Income</span>
-            {% else %}
-              <span class="badge bg-danger">Expense</span>
-            {% endif %}
-          </td>
-          <td class="text-end fw-bold {% if tx.type == 'income' %}text-success{% else %}text-danger{% endif %}">
-            {% if tx.type == 'income' %}+{% else %}−{% endif %}{{ tx.amount|floatformat:2 }}
-          </td>
-          <td class="text-center">
-            <a href="{% url 'transaction_edit' tx.pk %}" class="btn btn-outline-primary btn-sm">Edit</a>
-            <form method="post" action="{% url 'transaction_delete' tx.pk %}" class="d-inline">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-sm btn-outline-danger"
-                onclick="return confirm('Delete this transaction?')">Delete</button>
-            </form>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-      <tfoot class="table-light fw-bold">
-        <tr>
-          <td colspan="5" class="text-end">Total Income:</td>
-          <td class="text-end text-success">+{{ total_income|floatformat:2 }}</td>
-          <td></td>
-        </tr>
-        <tr>
-          <td colspan="5" class="text-end">Total Expenses:</td>
-          <td class="text-end text-danger">−{{ total_expense|floatformat:2 }}</td>
-          <td></td>
-        </tr>
-        <tr>
-          <td colspan="5" class="text-end">Transaction Volume:</td>
-          <td class="text-end" style="color:#7e3af2;">{{ total_volume|floatformat:2 }}</td>
-          <td></td>
-        </tr>
-        <tr>
-          <td colspan="5" class="text-end">Remaining Balance:</td>
-          <td class="text-end text-primary">{{ balance|floatformat:2 }}</td>
-          <td></td>
-        </tr>
-      </tfoot>
-    </table>
-  </div>
+<div class="content-card mb-4">
+  <form method="get" class="filter-bar">
+    <a href="{% url 'transaction_list' %}" class="filter-chip {% if not request.GET.type %}active{% endif %}">All</a>
+    <a href="?type=income{% if request.GET.month %}&month={{ request.GET.month }}{% endif %}" class="filter-chip {% if request.GET.type == 'income' %}active{% endif %}">Income</a>
+    <a href="?type=expense{% if request.GET.month %}&month={{ request.GET.month }}{% endif %}" class="filter-chip {% if request.GET.type == 'expense' %}active{% endif %}">Expenses</a>
+    <div class="ms-auto d-flex align-items-center gap-2">
+      <input type="month" name="month" value="{{ request.GET.month }}" class="form-control" style="max-width:170px; font-size:0.85rem;">
+      {% if request.GET.type %}<input type="hidden" name="type" value="{{ request.GET.type }}">{% endif %}
+      <button type="submit" class="btn-outline-custom">Filter</button>
+    </div>
+  </form>
 </div>
 
-{% else %}
-<div class="text-center py-5">
-  <p class="text-muted">No transactions yet.</p>
-  <a href="{% url 'transaction_add' %}" class="btn btn-primary">+ Add your first transaction</a>
+<!-- Transaction List -->
+<div class="content-card">
+  {% if transactions %}
+    {% for tx in transactions %}
+    <div class="transaction-item">
+      <div class="transaction-left">
+        <div class="transaction-icon {{ tx.type }}">
+          {% if tx.type == 'income' %}↑{% else %}↓{% endif %}
+        </div>
+        <div>
+          <div class="transaction-desc">{{ tx.description|default:tx.category.name }}</div>
+          <div class="transaction-cat">{{ tx.category.name|default:"Uncategorized" }}</div>
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-3">
+        <div class="text-end">
+          <div class="transaction-amount {{ tx.type }}">
+            {% if tx.type == 'income' %}+{% else %}-{% endif %}{{ tx.amount|floatformat:2 }}
+          </div>
+          <div class="transaction-date">{{ tx.date }}</div>
+        </div>
+        <div class="d-flex gap-1">
+          <a href="{% url 'transaction_edit' tx.pk %}" class="btn-outline-custom" style="padding:5px 10px; font-size:0.75rem;">Edit</a>
+          <a href="{% url 'transaction_delete' tx.pk %}" class="btn-outline-custom" style="padding:5px 10px; font-size:0.75rem; color:var(--accent-red); border-color:var(--accent-red-light);">Del</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon">📝</div>
+      <h3>No transactions found</h3>
+      <p>Try adjusting your filters or add a new transaction.</p>
+      <a href="{% url 'transaction_add' %}" class="btn-primary-custom mt-3">+ Add Transaction</a>
+    </div>
+  {% endif %}
 </div>
-{% endif %}
 {% endblock %}
